@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Application Ledger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1612;
+      --ink-soft: #4a4036;
+      --paper: #f5f1e8;
+      --paper-warm: #ebe4d3;
+      --rule: #d4c9b0;
+      --accent: #8b2c1e;
+      --accent-soft: #a8533f;
+    }
+    html, body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Fraunces', Georgia, serif;
+      font-feature-settings: "ss01", "ss02", "onum";
+    }
+    .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .font-serif { font-family: 'Fraunces', Georgia, serif; }
+    .display {
+      font-family: 'Fraunces', Georgia, serif;
+      font-variation-settings: "opsz" 144, "SOFT" 100;
+      letter-spacing: -0.02em;
+    }
+    .rule-top { border-top: 1px solid var(--rule); }
+    .rule-bottom { border-bottom: 1px solid var(--rule); }
+    .rule-double-top {
+      border-top: 3px double var(--ink);
+    }
+    .rule-double-bottom {
+      border-bottom: 3px double var(--ink);
+    }
+    .ink { color: var(--ink); }
+    .ink-soft { color: var(--ink-soft); }
+    .bg-paper { background: var(--paper); }
+    .bg-paper-warm { background: var(--paper-warm); }
+    .accent { color: var(--accent); }
+    .border-rule { border-color: var(--rule); }
+    .border-ink { border-color: var(--ink); }
+    input, select, textarea {
+      background: transparent;
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      padding: 0.5rem 0.625rem;
+      width: 100%;
+      transition: border-color 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--ink);
+    }
+    label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-soft);
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+    .btn-primary {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      padding: 0.75rem 1.25rem;
+      border: 1px solid var(--ink);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink-soft);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0.4rem 0.7rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .btn-ghost:hover { color: var(--ink); }
+    .btn-danger:hover { color: var(--accent); }
+    .status-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid currentColor;
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .s-Applied    { color: #4a4036; }
+    .s-Screening  { color: #6b5b2a; }
+    .s-Interview  { color: #2c5e3a; }
+    .s-Offer      { color: #1a5f3a; background: #d8e7d4; }
+    .s-Rejected   { color: #8b2c1e; }
+    .s-Ghosted    { color: #6b6259; opacity: 0.7; }
+    .filter-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-soft);
+      padding: 0.4rem 0.7rem;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover { color: var(--ink); }
+    .filter-tab.active {
+      color: var(--ink);
+      border-bottom-color: var(--ink);
+    }
+    .stat-num {
+      font-family: 'Fraunces', Georgia, serif;
+      font-variation-settings: "opsz" 144;
+      font-weight: 400;
+      font-size: 3.5rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--ink-soft);
+    }
+    .masthead-rule {
+      height: 1px;
+      background: var(--ink);
+    }
+    table { border-collapse: collapse; width: 100%; }
+    th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--ink-soft);
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--ink);
+      font-weight: 500;
+    }
+    td {
+      padding: 0.85rem 0.75rem;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+      font-size: 0.92rem;
+    }
+    tr:hover td { background: rgba(212, 201, 176, 0.18); }
+    .inline-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.45rem;
+      border: 1px solid currentColor;
+      background: transparent;
+      cursor: pointer;
+    }
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(26, 22, 18, 0.55);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 50;
+      padding: 1rem;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--paper);
+      border: 1px solid var(--ink);
+      padding: 2rem;
+      max-width: 560px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    a.entry-link { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    a.entry-link:hover { color: var(--ink); }
+    .smallcap { font-variant: small-caps; letter-spacing: 0.05em; }
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--ink-soft);
+    }
+    .ornament {
+      text-align: center;
+      font-family: 'Fraunces', serif;
+      color: var(--ink-soft);
+      letter-spacing: 0.5em;
+      padding: 1rem 0;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-6xl mx-auto px-6 md:px-10 py-10">
+
+    <header class="mb-10">
+      <div class="flex items-center justify-between text-xs font-mono uppercase tracking-widest ink-soft">
+        <span id="todayDate">—</span>
+        <span class="smallcap">Vol. I &middot; A Personal Ledger</span>
+        <span id="totalCountTop">No. 000</span>
+      </div>
+      <div class="masthead-rule my-3"></div>
+      <h1 class="display text-center text-6xl md:text-8xl leading-none mt-4 mb-2">
+        <em class="italic" style="font-weight:400;">The</em> Application <em class="italic" style="font-weight:400;">Ledger</em>
+      </h1>
+      <p class="text-center font-mono text-xs uppercase tracking-[0.3em] ink-soft mt-2">
+        A faithful record &mdash; entered by hand &mdash; of inquiries dispatched
+      </p>
+      <div class="rule-double-bottom mt-6"></div>
+    </header>
+
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-0 mb-10">
+      <div class="px-4 py-6 border-r border-rule">
+        <div class="stat-num" id="statTotal">0</div>
+        <div class="stat-label mt-2">Total Entries</div>
+      </div>
+      <div class="px-4 py-6 border-r border-rule">
+        <div class="stat-num" id="statToday">0</div>
+        <div class="stat-label mt-2">Today</div>
+      </div>
+      <div class="px-4 py-6 border-r border-rule">
+        <div class="stat-num" id="statWeek">0</div>
+        <div class="stat-label mt-2">This Week</div>
+      </div>
+      <div class="px-4 py-6">
+        <div class="stat-num accent" id="statPipeline">0</div>
+        <div class="stat-label mt-2">In Pipeline</div>
+      </div>
+    </section>
+
+    <div class="rule-top mb-8"></div>
+
+    <section class="mb-10">
+      <div class="flex items-baseline justify-between mb-5">
+        <h2 class="display text-3xl">
+          <em class="italic" style="font-weight:400;">&sect;</em> New Entry
+        </h2>
+        <span class="font-mono text-xs uppercase tracking-widest ink-soft">Add to the record</span>
+      </div>
+      <form id="entryForm" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-3">
+          <label for="f-date">Date</label>
+          <input type="date" id="f-date" required />
+        </div>
+        <div class="md:col-span-4">
+          <label for="f-company">Company</label>
+          <input type="text" id="f-company" placeholder="e.g., Hearst Magazines" required />
+        </div>
+        <div class="md:col-span-5">
+          <label for="f-role">Role</label>
+          <input type="text" id="f-role" placeholder="e.g., Brand Marketing Associate" required />
+        </div>
+        <div class="md:col-span-3">
+          <label for="f-resume">Resume Version</label>
+          <input type="text" id="f-resume" placeholder="e.g., v3-marketing" />
+        </div>
+        <div class="md:col-span-5">
+          <label for="f-link">Job Posting Link</label>
+          <input type="url" id="f-link" placeholder="https://&hellip;" />
+        </div>
+        <div class="md:col-span-4">
+          <label for="f-status">Status</label>
+          <select id="f-status">
+            <option>Applied</option>
+            <option>Screening</option>
+            <option>Interview</option>
+            <option>Offer</option>
+            <option>Rejected</option>
+            <option>Ghosted</option>
+          </select>
+        </div>
+        <div class="md:col-span-12">
+          <label for="f-notes">Notes</label>
+          <textarea id="f-notes" rows="2" placeholder="Referral, recruiter name, follow-up date&hellip;"></textarea>
+        </div>
+        <div class="md:col-span-12 flex items-center justify-between pt-2">
+          <span class="font-mono text-xs ink-soft">All fields stored locally in your browser.</span>
+          <button type="submit" class="btn-primary">Enter into Ledger</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="rule-top mb-6"></div>
+
+    <section>
+      <div class="flex items-baseline justify-between mb-4 flex-wrap gap-3">
+        <h2 class="display text-3xl">
+          <em class="italic" style="font-weight:400;">&sect;</em> The Record
+        </h2>
+        <div class="font-mono text-xs uppercase tracking-widest ink-soft" id="recordMeta">0 entries</div>
+      </div>
+
+      <div class="flex flex-wrap gap-1 mb-4 border-b border-rule">
+        <button class="filter-tab active" data-filter="All">All</button>
+        <button class="filter-tab" data-filter="Applied">Applied</button>
+        <button class="filter-tab" data-filter="Screening">Screening</button>
+        <button class="filter-tab" data-filter="Interview">Interview</button>
+        <button class="filter-tab" data-filter="Offer">Offer</button>
+        <button class="filter-tab" data-filter="Rejected">Rejected</button>
+        <button class="filter-tab" data-filter="Ghosted">Ghosted</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table id="ledgerTable">
+          <thead>
+            <tr>
+              <th style="width: 9rem;">Date</th>
+              <th>Company &amp; Role</th>
+              <th style="width: 9rem;">Resume</th>
+              <th style="width: 8rem;">Status</th>
+              <th style="width: 6rem;" class="text-right pr-3">&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+
+      <div id="emptyState" class="empty-state hidden">
+        <div class="ornament">&sect; &middot; &sect; &middot; &sect;</div>
+        <p class="font-serif italic text-xl mb-2">The ledger awaits its first entry.</p>
+        <p class="font-mono text-xs uppercase tracking-widest">Begin above &mdash;</p>
+      </div>
+    </section>
+
+    <footer class="mt-16 pt-6 rule-double-top">
+      <div class="flex flex-wrap items-center justify-between gap-3 font-mono text-xs uppercase tracking-widest ink-soft">
+        <span>Kept by hand &middot; Stored locally</span>
+        <span class="smallcap">Fin.</span>
+        <span><button id="exportBtn" class="btn-ghost">Export JSON</button></span>
+      </div>
+    </footer>
+  </div>
+
+  <div class="modal-backdrop" id="editModal">
+    <div class="modal">
+      <div class="flex items-baseline justify-between mb-5">
+        <h3 class="display text-2xl"><em class="italic">Amend</em> Entry</h3>
+        <button class="btn-ghost" id="cancelEdit">Cancel</button>
+      </div>
+      <form id="editForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label>Date</label><input type="date" id="e-date" required /></div>
+        <div><label>Status</label>
+          <select id="e-status">
+            <option>Applied</option><option>Screening</option><option>Interview</option>
+            <option>Offer</option><option>Rejected</option><option>Ghosted</option>
+          </select>
+        </div>
+        <div class="md:col-span-2"><label>Company</label><input type="text" id="e-company" required /></div>
+        <div class="md:col-span-2"><label>Role</label><input type="text" id="e-role" required /></div>
+        <div><label>Resume Version</label><input type="text" id="e-resume" /></div>
+        <div><label>Job Posting Link</label><input type="url" id="e-link" /></div>
+        <div class="md:col-span-2"><label>Notes</label><textarea id="e-notes" rows="3"></textarea></div>
+        <div class="md:col-span-2 flex justify-end gap-2 pt-2">
+          <button type="button" class="btn-ghost btn-danger" id="deleteEntry">Delete entry</button>
+          <button type="submit" class="btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const STORAGE_KEY = 'application_ledger_v1';
+  const STATUSES = ['Applied','Screening','Interview','Offer','Rejected','Ghosted'];
+  const PIPELINE = new Set(['Screening','Interview']);
+
+  let entries = [];
+  let activeFilter = 'All';
+  let editingId = null;
+
+  const $ = id => document.getElementById(id);
+  const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const todayISO = () => new Date().toISOString().slice(0,10);
+  const escapeHtml = s => (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function load() {
+    try {
+      entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      if (!Array.isArray(entries)) entries = [];
+    } catch { entries = []; }
+  }
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }
+
+  function within(daysBack, iso) {
+    const d = new Date(iso + 'T00:00:00');
+    const now = new Date(); now.setHours(0,0,0,0);
+    const diff = (now - d) / 86400000;
+    return diff >= 0 && diff < daysBack;
+  }
+
+  function renderStats() {
+    const today = todayISO();
+    const total = entries.length;
+    const todayCount = entries.filter(e => e.date === today).length;
+    const weekCount = entries.filter(e => within(7, e.date)).length;
+    const pipeline = entries.filter(e => PIPELINE.has(e.status)).length;
+    $('statTotal').textContent = total;
+    $('statToday').textContent = todayCount;
+    $('statWeek').textContent = weekCount;
+    $('statPipeline').textContent = pipeline;
+    $('totalCountTop').textContent = 'No. ' + String(total).padStart(3,'0');
+  }
+
+  function renderTable() {
+    const body = $('ledgerBody');
+    const filtered = activeFilter === 'All'
+      ? entries
+      : entries.filter(e => e.status === activeFilter);
+    filtered.sort((a,b) => (b.date.localeCompare(a.date)) || (b.created - a.created));
+
+    $('recordMeta').textContent = filtered.length + ' ' + (filtered.length === 1 ? 'entry' : 'entries');
+
+    if (filtered.length === 0) {
+      body.innerHTML = '';
+      $('emptyState').classList.remove('hidden');
+      $('ledgerTable').classList.add('hidden');
+      return;
+    }
+    $('emptyState').classList.add('hidden');
+    $('ledgerTable').classList.remove('hidden');
+
+    body.innerHTML = filtered.map(e => {
+      const link = e.link ? `<a class="entry-link font-mono text-xs" href="${escapeHtml(e.link)}" target="_blank" rel="noopener">posting &rarr;</a>` : '';
+      const notes = e.notes ? `<div class="ink-soft italic text-sm mt-1">&ldquo;${escapeHtml(e.notes)}&rdquo;</div>` : '';
+      const statusOpts = STATUSES.map(s => `<option ${s===e.status?'selected':''}>${s}</option>`).join('');
+      return `
+        <tr data-id="${e.id}">
+          <td class="font-mono text-xs ink-soft">${fmt(e.date)}</td>
+          <td>
+            <div class="font-serif font-medium text-base ink">${escapeHtml(e.company)}</div>
+            <div class="font-serif italic ink-soft">${escapeHtml(e.role)}</div>
+            ${link ? '<div class="mt-1">'+link+'</div>' : ''}
+            ${notes}
+          </td>
+          <td class="font-mono text-xs">${escapeHtml(e.resume || '—')}</td>
+          <td>
+            <select class="inline-status s-${e.status}" data-action="status" data-id="${e.id}">
+              ${statusOpts}
+            </select>
+          </td>
+          <td class="text-right pr-3">
+            <button class="btn-ghost" data-action="edit" data-id="${e.id}">Edit</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function render() { renderStats(); renderTable(); }
+
+  function addEntry(e) {
+    e.preventDefault();
+    const entry = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      date: $('f-date').value,
+      company: $('f-company').value.trim(),
+      role: $('f-role').value.trim(),
+      resume: $('f-resume').value.trim(),
+      link: $('f-link').value.trim(),
+      status: $('f-status').value,
+      notes: $('f-notes').value.trim(),
+      created: Date.now()
+    };
+    entries.push(entry);
+    save(); render();
+    $('entryForm').reset();
+    $('f-date').value = todayISO();
+  }
+
+  function openEdit(id) {
+    const e = entries.find(x => x.id === id);
+    if (!e) return;
+    editingId = id;
+    $('e-date').value = e.date;
+    $('e-company').value = e.company;
+    $('e-role').value = e.role;
+    $('e-resume').value = e.resume || '';
+    $('e-link').value = e.link || '';
+    $('e-status').value = e.status;
+    $('e-notes').value = e.notes || '';
+    $('editModal').classList.add('open');
+  }
+  function closeEdit() { editingId = null; $('editModal').classList.remove('open'); }
+  function saveEdit(ev) {
+    ev.preventDefault();
+    const e = entries.find(x => x.id === editingId);
+    if (!e) return closeEdit();
+    e.date = $('e-date').value;
+    e.company = $('e-company').value.trim();
+    e.role = $('e-role').value.trim();
+    e.resume = $('e-resume').value.trim();
+    e.link = $('e-link').value.trim();
+    e.status = $('e-status').value;
+    e.notes = $('e-notes').value.trim();
+    save(); render(); closeEdit();
+  }
+  function deleteEntry() {
+    if (!editingId) return;
+    if (!confirm('Strike this entry from the ledger?')) return;
+    entries = entries.filter(x => x.id !== editingId);
+    save(); render(); closeEdit();
+  }
+
+  function inlineStatus(id, newStatus) {
+    const e = entries.find(x => x.id === id);
+    if (!e) return;
+    e.status = newStatus;
+    save(); render();
+  }
+
+  function exportJSON() {
+    const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'application-ledger-' + todayISO() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    load();
+    $('f-date').value = todayISO();
+    $('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    $('entryForm').addEventListener('submit', addEntry);
+    $('editForm').addEventListener('submit', saveEdit);
+    $('cancelEdit').addEventListener('click', closeEdit);
+    $('deleteEntry').addEventListener('click', deleteEntry);
+    $('editModal').addEventListener('click', ev => { if (ev.target === ev.currentTarget) closeEdit(); });
+    $('exportBtn').addEventListener('click', exportJSON);
+
+    document.querySelectorAll('.filter-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        renderTable();
+      });
+    });
+
+    $('ledgerBody').addEventListener('click', ev => {
+      const el = ev.target.closest('[data-action]');
+      if (!el) return;
+      if (el.dataset.action === 'edit') openEdit(el.dataset.id);
+    });
+    $('ledgerBody').addEventListener('change', ev => {
+      const el = ev.target.closest('[data-action="status"]');
+      if (!el) return;
+      inlineStatus(el.dataset.id, el.value);
+    });
+
+    render();
+  });
+})();
+</script>
+</body>
+</html>
