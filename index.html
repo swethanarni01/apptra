@@ -243,6 +243,35 @@
   </style>
 </head>
 <body>
+  <datalist id="source-options">
+    <option value="LinkedIn"></option>
+    <option value="Indeed"></option>
+    <option value="Glassdoor"></option>
+    <option value="Company website"></option>
+    <option value="Referral"></option>
+    <option value="Recruiter outreach"></option>
+    <option value="Handshake"></option>
+    <option value="Wellfound / AngelList"></option>
+    <option value="Built In"></option>
+    <option value="We Work Remotely"></option>
+    <option value="Networking event"></option>
+    <option value="Cold email"></option>
+    <option value="Twitter / X"></option>
+    <option value="Other job board"></option>
+  </datalist>
+  <datalist id="location-options">
+    <option value="Remote"></option>
+    <option value="Hybrid"></option>
+    <option value="On-site"></option>
+    <option value="New York, NY"></option>
+    <option value="San Francisco, CA"></option>
+    <option value="Los Angeles, CA"></option>
+    <option value="Chicago, IL"></option>
+    <option value="Boston, MA"></option>
+    <option value="Austin, TX"></option>
+    <option value="Seattle, WA"></option>
+  </datalist>
+
   <div class="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
 
     <header class="flex items-center justify-between mb-10">
@@ -303,11 +332,11 @@
         </div>
         <div class="md:col-span-4">
           <label for="f-location">Location</label>
-          <input type="text" id="f-location" placeholder="Remote · New York · Hybrid" />
+          <input type="text" id="f-location" list="location-options" placeholder="Remote · New York · Hybrid" />
         </div>
         <div class="md:col-span-4">
           <label for="f-source">Source</label>
-          <input type="text" id="f-source" placeholder="LinkedIn · Referral · Company site" />
+          <input type="text" id="f-source" list="source-options" placeholder="LinkedIn · Referral · Company site" />
         </div>
         <div class="md:col-span-4">
           <label for="f-status">Status</label>
@@ -417,8 +446,8 @@
         </div>
         <div class="md:col-span-2"><label>Company</label><input type="text" id="n-company" required /></div>
         <div class="md:col-span-2"><label>Role</label><input type="text" id="n-role" required /></div>
-        <div><label>Location</label><input type="text" id="n-location" placeholder="Remote · New York" /></div>
-        <div><label>Source</label><input type="text" id="n-source" placeholder="LinkedIn · Referral" /></div>
+        <div><label>Location</label><input type="text" id="n-location" list="location-options" placeholder="Remote · New York" /></div>
+        <div><label>Source</label><input type="text" id="n-source" list="source-options" placeholder="LinkedIn · Referral" /></div>
         <div><label>Resume version</label><input type="text" id="n-resume" /></div>
         <div><label>Follow up by</label><input type="date" id="n-followup" /></div>
         <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="n-link" /></div>
@@ -447,8 +476,8 @@
         </div>
         <div class="md:col-span-2"><label>Company</label><input type="text" id="e-company" required /></div>
         <div class="md:col-span-2"><label>Role</label><input type="text" id="e-role" required /></div>
-        <div><label>Location</label><input type="text" id="e-location" /></div>
-        <div><label>Source</label><input type="text" id="e-source" /></div>
+        <div><label>Location</label><input type="text" id="e-location" list="location-options" /></div>
+        <div><label>Source</label><input type="text" id="e-source" list="source-options" /></div>
         <div><label>Resume version</label><input type="text" id="e-resume" /></div>
         <div><label>Follow up by</label><input type="date" id="e-followup" /></div>
         <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="e-link" /></div>
