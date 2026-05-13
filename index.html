@@ -18,7 +18,9 @@
       --text-faint: #84848d;
       --border: #3a3a42;
       --border-soft: #2e2e34;
-      --accent: #f4f4f5;
+      --accent: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --accent-soft: #2e1b53;
       --warn: #fbbf24;
       color-scheme: dark;
     }
@@ -70,11 +72,12 @@
       border: 1px solid transparent;
     }
     .btn-primary {
-      background: var(--text);
-      color: var(--bg);
-      border-color: var(--text);
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -4px rgba(139,92,246,0.5);
     }
-    .btn-primary:hover { background: #d4d4d8; }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
     .btn-secondary {
       background: var(--bg);
       color: var(--text);
@@ -119,9 +122,9 @@
     }
     .filter-chip:hover { background: var(--bg-hover); }
     .filter-chip.active {
-      background: var(--text);
-      color: var(--bg);
-      border-color: var(--text);
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
     }
 
     table { border-collapse: collapse; width: 100%; }
@@ -282,7 +285,7 @@
         <p class="text-sm text-[var(--text-soft)] mt-1" id="todaySub">—</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-secondary" id="newEntryBtn">＋ New entry</button>
+        <button class="btn btn-primary" id="newEntryBtn">＋ New entry</button>
       </div>
     </header>
 
