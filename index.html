@@ -3,281 +3,311 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Application Ledger</title>
+  <title>Applications</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --ink: #1a1612;
-      --ink-soft: #4a4036;
-      --paper: #f5f1e8;
-      --paper-warm: #ebe4d3;
-      --rule: #d4c9b0;
-      --accent: #8b2c1e;
-      --accent-soft: #a8533f;
+      --bg: #ffffff;
+      --bg-soft: #fafafa;
+      --bg-hover: #f5f5f5;
+      --text: #0a0a0a;
+      --text-soft: #6b7280;
+      --text-faint: #9ca3af;
+      --border: #e5e7eb;
+      --border-soft: #f3f4f6;
+      --accent: #0a0a0a;
+      --warn: #b45309;
     }
+    * { box-sizing: border-box; }
     html, body {
-      background: var(--paper);
-      color: var(--ink);
-      font-family: 'Fraunces', Georgia, serif;
-      font-feature-settings: "ss01", "ss02", "onum";
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.005em;
     }
-    .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-    .font-serif { font-family: 'Fraunces', Georgia, serif; }
-    .display {
-      font-family: 'Fraunces', Georgia, serif;
-      font-variation-settings: "opsz" 144, "SOFT" 100;
-      letter-spacing: -0.02em;
-    }
-    .rule-top { border-top: 1px solid var(--rule); }
-    .rule-bottom { border-bottom: 1px solid var(--rule); }
-    .rule-double-top {
-      border-top: 3px double var(--ink);
-    }
-    .rule-double-bottom {
-      border-bottom: 3px double var(--ink);
-    }
-    .ink { color: var(--ink); }
-    .ink-soft { color: var(--ink-soft); }
-    .bg-paper { background: var(--paper); }
-    .bg-paper-warm { background: var(--paper-warm); }
-    .accent { color: var(--accent); }
-    .border-rule { border-color: var(--rule); }
-    .border-ink { border-color: var(--ink); }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
     input, select, textarea {
-      background: transparent;
-      border: 1px solid var(--rule);
-      color: var(--ink);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
-      padding: 0.5rem 0.625rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.875rem;
+      padding: 0.625rem 0.75rem;
       width: 100%;
-      transition: border-color 0.15s ease;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease;
     }
+    input::placeholder, textarea::placeholder { color: var(--text-faint); }
     input:focus, select:focus, textarea:focus {
       outline: none;
-      border-color: var(--ink);
+      border-color: var(--text);
+      box-shadow: 0 0 0 3px rgba(10,10,10,0.05);
     }
     label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--ink-soft);
-      margin-bottom: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      margin-bottom: 0.4rem;
       display: block;
     }
-    .btn-primary {
-      background: var(--ink);
-      color: var(--paper);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      padding: 0.75rem 1.25rem;
-      border: 1px solid var(--ink);
-      transition: all 0.15s ease;
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.55rem 0.95rem;
+      border-radius: 8px;
       cursor: pointer;
+      transition: all 0.12s ease;
+      border: 1px solid transparent;
     }
-    .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+    .btn-primary:hover { background: #262626; }
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover { background: var(--bg-hover); }
     .btn-ghost {
       background: transparent;
-      color: var(--ink-soft);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 0.4rem 0.7rem;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: color 0.15s;
+      color: var(--text-soft);
+      padding: 0.4rem 0.6rem;
     }
-    .btn-ghost:hover { color: var(--ink); }
-    .btn-danger:hover { color: var(--accent); }
-    .status-pill {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      padding: 0.2rem 0.5rem;
-      border: 1px solid currentColor;
-      display: inline-block;
+    .btn-ghost:hover { color: var(--text); background: var(--bg-hover); }
+    .btn-danger:hover { color: #b91c1c; background: #fef2f2; }
+
+    .pill {
+      display: inline-flex; align-items: center;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid;
+      letter-spacing: 0.01em;
+    }
+    .pill-Applied   { background: #f9fafb; color: #374151; border-color: #e5e7eb; }
+    .pill-Screening { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    .pill-Interview { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+    .pill-Offer     { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+    .pill-Rejected  { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .pill-Ghosted   { background: #f5f5f5; color: #6b7280; border-color: #e5e7eb; }
+
+    .filter-chip {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      transition: all 0.12s;
       white-space: nowrap;
     }
-    .s-Applied    { color: #4a4036; }
-    .s-Screening  { color: #6b5b2a; }
-    .s-Interview  { color: #2c5e3a; }
-    .s-Offer      { color: #1a5f3a; background: #d8e7d4; }
-    .s-Rejected   { color: #8b2c1e; }
-    .s-Ghosted    { color: #6b6259; opacity: 0.7; }
-    .filter-tab {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--ink-soft);
-      padding: 0.4rem 0.7rem;
-      border-bottom: 2px solid transparent;
-      cursor: pointer;
-      transition: all 0.15s;
+    .filter-chip:hover { background: var(--bg-hover); }
+    .filter-chip.active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
     }
-    .filter-tab:hover { color: var(--ink); }
-    .filter-tab.active {
-      color: var(--ink);
-      border-bottom-color: var(--ink);
-    }
-    .stat-num {
-      font-family: 'Fraunces', Georgia, serif;
-      font-variation-settings: "opsz" 144;
-      font-weight: 400;
-      font-size: 3.5rem;
-      line-height: 1;
-      letter-spacing: -0.03em;
-    }
-    .stat-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: var(--ink-soft);
-    }
-    .masthead-rule {
-      height: 1px;
-      background: var(--ink);
-    }
+
     table { border-collapse: collapse; width: 100%; }
     th {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: var(--ink-soft);
-      text-align: left;
-      padding: 0.6rem 0.75rem;
-      border-bottom: 1px solid var(--ink);
+      font-size: 0.72rem;
       font-weight: 500;
+      color: var(--text-soft);
+      text-align: left;
+      padding: 0.7rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.02em;
+      cursor: default;
+      user-select: none;
+      white-space: nowrap;
     }
+    th.sortable { cursor: pointer; }
+    th.sortable:hover { color: var(--text); }
+    th .sort-arrow { opacity: 0.4; margin-left: 0.25rem; font-size: 0.7rem; }
+    th.sort-asc  .sort-arrow, th.sort-desc .sort-arrow { opacity: 1; color: var(--text); }
     td {
-      padding: 0.85rem 0.75rem;
-      border-bottom: 1px solid var(--rule);
+      padding: 0.9rem 0.85rem;
+      border-bottom: 1px solid var(--border-soft);
       vertical-align: top;
-      font-size: 0.92rem;
+      font-size: 0.9rem;
     }
-    tr:hover td { background: rgba(212, 201, 176, 0.18); }
-    .inline-status {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      padding: 0.2rem 0.45rem;
-      border: 1px solid currentColor;
-      background: transparent;
-      cursor: pointer;
+    tbody tr:hover td { background: var(--bg-soft); }
+
+    .stat-num {
+      font-size: 2.25rem;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.04em;
     }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      margin-top: 0.4rem;
+    }
+
+    .chart-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--border-soft); }
+    .chart-seg { height: 100%; transition: width 0.3s; }
+    .seg-Applied   { background: #d1d5db; }
+    .seg-Screening { background: #fcd34d; }
+    .seg-Interview { background: #93c5fd; }
+    .seg-Offer     { background: #6ee7b7; }
+    .seg-Rejected  { background: #fca5a5; }
+    .seg-Ghosted   { background: #e5e7eb; }
+
+    .chart-legend {
+      display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem;
+      margin-top: 0.85rem;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+    .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 0.4rem; vertical-align: middle; }
+
     .modal-backdrop {
       position: fixed; inset: 0;
-      background: rgba(26, 22, 18, 0.55);
+      background: rgba(10,10,10,0.45);
       display: none;
       align-items: center; justify-content: center;
-      z-index: 50;
-      padding: 1rem;
+      z-index: 50; padding: 1rem;
     }
     .modal-backdrop.open { display: flex; }
     .modal {
-      background: var(--paper);
-      border: 1px solid var(--ink);
-      padding: 2rem;
-      max-width: 560px;
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 1.75rem;
+      max-width: 620px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
+      box-shadow: 0 24px 48px -12px rgba(0,0,0,0.18);
     }
-    a.entry-link { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
-    a.entry-link:hover { color: var(--ink); }
-    .smallcap { font-variant: small-caps; letter-spacing: 0.05em; }
+    .modal h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .followup-overdue { color: #b45309; font-weight: 500; }
+    .link-arrow { color: var(--text-soft); text-decoration: none; font-size: 0.78rem; }
+    .link-arrow:hover { color: var(--text); }
+
+    details.section > summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      padding: 0.5rem 0;
+    }
+    details.section > summary:hover { color: var(--text); }
+    details.section > summary::-webkit-details-marker { display: none; }
+    details.section[open] > summary .chev { transform: rotate(90deg); }
+    .chev { transition: transform 0.15s; display: inline-block; }
+
     .empty-state {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--ink-soft);
+      text-align: center; padding: 3.5rem 1rem;
+      color: var(--text-soft);
     }
-    .ornament {
-      text-align: center;
-      font-family: 'Fraunces', serif;
-      color: var(--ink-soft);
-      letter-spacing: 0.5em;
-      padding: 1rem 0;
+    .empty-state .big {
+      font-size: 1.1rem; color: var(--text); font-weight: 500; margin-bottom: 0.3rem;
+    }
+
+    .badge {
+      display: inline-flex; align-items: center;
+      font-size: 0.72rem; font-weight: 500;
+      padding: 0.18rem 0.5rem;
+      background: var(--bg-soft);
+      color: var(--text-soft);
+      border-radius: 4px;
+    }
+
+    @media (max-width: 720px) {
+      .stat-num { font-size: 1.65rem; }
+      th, td { padding: 0.6rem 0.5rem; font-size: 0.82rem; }
     }
   </style>
 </head>
-<body class="min-h-screen">
-  <div class="max-w-6xl mx-auto px-6 md:px-10 py-10">
+<body>
+  <div class="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
 
-    <header class="mb-10">
-      <div class="flex items-center justify-between text-xs font-mono uppercase tracking-widest ink-soft">
-        <span id="todayDate">—</span>
-        <span class="smallcap">Vol. I &middot; A Personal Ledger</span>
-        <span id="totalCountTop">No. 000</span>
+    <header class="flex items-center justify-between mb-10">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight">Applications</h1>
+        <p class="text-sm text-[var(--text-soft)] mt-1" id="todaySub">—</p>
       </div>
-      <div class="masthead-rule my-3"></div>
-      <h1 class="display text-center text-6xl md:text-8xl leading-none mt-4 mb-2">
-        <em class="italic" style="font-weight:400;">The</em> Application <em class="italic" style="font-weight:400;">Ledger</em>
-      </h1>
-      <p class="text-center font-mono text-xs uppercase tracking-[0.3em] ink-soft mt-2">
-        A faithful record &mdash; entered by hand &mdash; of inquiries dispatched
-      </p>
-      <div class="rule-double-bottom mt-6"></div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-secondary" id="newEntryBtn">＋ New entry</button>
+      </div>
     </header>
 
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-0 mb-10">
-      <div class="px-4 py-6 border-r border-rule">
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div class="border border-[var(--border)] rounded-xl px-5 py-5">
         <div class="stat-num" id="statTotal">0</div>
-        <div class="stat-label mt-2">Total Entries</div>
+        <div class="stat-label">Total</div>
       </div>
-      <div class="px-4 py-6 border-r border-rule">
+      <div class="border border-[var(--border)] rounded-xl px-5 py-5">
         <div class="stat-num" id="statToday">0</div>
-        <div class="stat-label mt-2">Today</div>
+        <div class="stat-label">Today</div>
       </div>
-      <div class="px-4 py-6 border-r border-rule">
+      <div class="border border-[var(--border)] rounded-xl px-5 py-5">
         <div class="stat-num" id="statWeek">0</div>
-        <div class="stat-label mt-2">This Week</div>
+        <div class="stat-label">This week</div>
       </div>
-      <div class="px-4 py-6">
-        <div class="stat-num accent" id="statPipeline">0</div>
-        <div class="stat-label mt-2">In Pipeline</div>
+      <div class="border border-[var(--border)] rounded-xl px-5 py-5">
+        <div class="stat-num" id="statPipeline">0</div>
+        <div class="stat-label">In pipeline</div>
       </div>
     </section>
 
-    <div class="rule-top mb-8"></div>
-
-    <section class="mb-10">
-      <div class="flex items-baseline justify-between mb-5">
-        <h2 class="display text-3xl">
-          <em class="italic" style="font-weight:400;">&sect;</em> New Entry
-        </h2>
-        <span class="font-mono text-xs uppercase tracking-widest ink-soft">Add to the record</span>
+    <section class="border border-[var(--border)] rounded-xl px-5 py-5 mb-8" id="chartSection">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="text-sm font-medium text-[var(--text-soft)]">Status distribution</h2>
+        <span class="mono text-xs text-[var(--text-faint)]" id="chartMeta">0 entries</span>
       </div>
-      <form id="entryForm" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <div class="chart-bar" id="chartBar"></div>
+      <div class="chart-legend" id="chartLegend"></div>
+    </section>
+
+    <details class="section border border-[var(--border)] rounded-xl px-5 py-3 mb-6" id="formSection">
+      <summary>
+        <span class="chev">›</span>
+        <span>Log a new application</span>
+      </summary>
+      <form id="entryForm" class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-4 pb-2">
         <div class="md:col-span-3">
           <label for="f-date">Date</label>
           <input type="date" id="f-date" required />
         </div>
         <div class="md:col-span-4">
           <label for="f-company">Company</label>
-          <input type="text" id="f-company" placeholder="e.g., Hearst Magazines" required />
+          <input type="text" id="f-company" placeholder="Hearst Magazines" required />
         </div>
         <div class="md:col-span-5">
           <label for="f-role">Role</label>
-          <input type="text" id="f-role" placeholder="e.g., Brand Marketing Associate" required />
+          <input type="text" id="f-role" placeholder="Brand Marketing Associate" required />
         </div>
-        <div class="md:col-span-3">
-          <label for="f-resume">Resume Version</label>
-          <input type="text" id="f-resume" placeholder="e.g., v3-marketing" />
+        <div class="md:col-span-4">
+          <label for="f-location">Location</label>
+          <input type="text" id="f-location" placeholder="Remote · New York · Hybrid" />
         </div>
-        <div class="md:col-span-5">
-          <label for="f-link">Job Posting Link</label>
-          <input type="url" id="f-link" placeholder="https://&hellip;" />
+        <div class="md:col-span-4">
+          <label for="f-source">Source</label>
+          <input type="text" id="f-source" placeholder="LinkedIn · Referral · Company site" />
         </div>
         <div class="md:col-span-4">
           <label for="f-status">Status</label>
@@ -290,75 +320,124 @@
             <option>Ghosted</option>
           </select>
         </div>
+        <div class="md:col-span-3">
+          <label for="f-resume">Resume version</label>
+          <input type="text" id="f-resume" placeholder="v3-marketing" />
+        </div>
+        <div class="md:col-span-6">
+          <label for="f-link">Job posting link</label>
+          <input type="url" id="f-link" placeholder="https://…" />
+        </div>
+        <div class="md:col-span-3">
+          <label for="f-followup">Follow up by</label>
+          <input type="date" id="f-followup" />
+        </div>
         <div class="md:col-span-12">
           <label for="f-notes">Notes</label>
-          <textarea id="f-notes" rows="2" placeholder="Referral, recruiter name, follow-up date&hellip;"></textarea>
+          <textarea id="f-notes" rows="2" placeholder="Referral, recruiter name, key takeaways…"></textarea>
         </div>
-        <div class="md:col-span-12 flex items-center justify-between pt-2">
-          <span class="font-mono text-xs ink-soft">All fields stored locally in your browser.</span>
-          <button type="submit" class="btn-primary">Enter into Ledger</button>
+        <div class="md:col-span-12 flex items-center justify-end gap-2 pt-1">
+          <button type="button" class="btn btn-ghost" id="resetFormBtn">Clear</button>
+          <button type="submit" class="btn btn-primary">Save application</button>
         </div>
       </form>
+    </details>
+
+    <section class="mb-4">
+      <div class="flex flex-col sm:flex-row gap-3 mb-3">
+        <div class="flex-1 relative">
+          <input type="text" id="searchInput" placeholder="Search company, role, notes, source, location…" />
+        </div>
+        <div class="flex gap-2">
+          <label class="btn btn-secondary cursor-pointer" for="csvImport">Import CSV</label>
+          <input type="file" id="csvImport" accept=".csv,text/csv" class="hidden" />
+          <div class="relative">
+            <button class="btn btn-secondary" id="exportMenuBtn">Export ▾</button>
+            <div class="hidden absolute right-0 mt-1 bg-white border border-[var(--border)] rounded-lg shadow-lg overflow-hidden z-10" id="exportMenu">
+              <button class="block w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)]" data-export="json">Export JSON</button>
+              <button class="block w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)]" data-export="csv">Export CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button class="filter-chip active" data-filter="All">All</button>
+        <button class="filter-chip" data-filter="Applied">Applied</button>
+        <button class="filter-chip" data-filter="Screening">Screening</button>
+        <button class="filter-chip" data-filter="Interview">Interview</button>
+        <button class="filter-chip" data-filter="Offer">Offer</button>
+        <button class="filter-chip" data-filter="Rejected">Rejected</button>
+        <button class="filter-chip" data-filter="Ghosted">Ghosted</button>
+        <button class="filter-chip ml-auto" data-filter="Overdue" id="overdueChip">Overdue follow-ups</button>
+      </div>
     </section>
 
-    <div class="rule-top mb-6"></div>
-
     <section>
-      <div class="flex items-baseline justify-between mb-4 flex-wrap gap-3">
-        <h2 class="display text-3xl">
-          <em class="italic" style="font-weight:400;">&sect;</em> The Record
-        </h2>
-        <div class="font-mono text-xs uppercase tracking-widest ink-soft" id="recordMeta">0 entries</div>
-      </div>
-
-      <div class="flex flex-wrap gap-1 mb-4 border-b border-rule">
-        <button class="filter-tab active" data-filter="All">All</button>
-        <button class="filter-tab" data-filter="Applied">Applied</button>
-        <button class="filter-tab" data-filter="Screening">Screening</button>
-        <button class="filter-tab" data-filter="Interview">Interview</button>
-        <button class="filter-tab" data-filter="Offer">Offer</button>
-        <button class="filter-tab" data-filter="Rejected">Rejected</button>
-        <button class="filter-tab" data-filter="Ghosted">Ghosted</button>
-      </div>
-
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto border border-[var(--border)] rounded-xl">
         <table id="ledgerTable">
           <thead>
             <tr>
-              <th style="width: 9rem;">Date</th>
-              <th>Company &amp; Role</th>
-              <th style="width: 9rem;">Resume</th>
-              <th style="width: 8rem;">Status</th>
-              <th style="width: 6rem;" class="text-right pr-3">&nbsp;</th>
+              <th class="sortable" data-sort="date">Date <span class="sort-arrow">↕</span></th>
+              <th class="sortable" data-sort="company">Company / Role <span class="sort-arrow">↕</span></th>
+              <th class="sortable" data-sort="location">Location <span class="sort-arrow">↕</span></th>
+              <th class="sortable" data-sort="source">Source <span class="sort-arrow">↕</span></th>
+              <th class="sortable" data-sort="status">Status <span class="sort-arrow">↕</span></th>
+              <th class="sortable" data-sort="followUp">Follow up <span class="sort-arrow">↕</span></th>
+              <th style="width: 5rem;"></th>
             </tr>
           </thead>
           <tbody id="ledgerBody"></tbody>
         </table>
       </div>
-
       <div id="emptyState" class="empty-state hidden">
-        <div class="ornament">&sect; &middot; &sect; &middot; &sect;</div>
-        <p class="font-serif italic text-xl mb-2">The ledger awaits its first entry.</p>
-        <p class="font-mono text-xs uppercase tracking-widest">Begin above &mdash;</p>
+        <div class="big">No applications yet.</div>
+        <div>Click <strong>“+ New entry”</strong> at the top to log your first one.</div>
       </div>
     </section>
 
-    <footer class="mt-16 pt-6 rule-double-top">
-      <div class="flex flex-wrap items-center justify-between gap-3 font-mono text-xs uppercase tracking-widest ink-soft">
-        <span>Kept by hand &middot; Stored locally</span>
-        <span class="smallcap">Fin.</span>
-        <span><button id="exportBtn" class="btn-ghost">Export JSON</button></span>
-      </div>
+    <footer class="mt-12 pt-6 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-soft)]">
+      <span>Stored locally in your browser · <span class="mono" id="footerCount">0</span> entries</span>
+      <span>Built for the search</span>
     </footer>
+  </div>
+
+  <div class="modal-backdrop" id="newEntryModal">
+    <div class="modal">
+      <div class="flex items-center justify-between mb-5">
+        <h3>New application</h3>
+        <button class="btn btn-ghost" id="cancelNew">Cancel</button>
+      </div>
+      <form id="modalNewForm" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div><label>Date</label><input type="date" id="n-date" required /></div>
+        <div><label>Status</label>
+          <select id="n-status">
+            <option>Applied</option><option>Screening</option><option>Interview</option>
+            <option>Offer</option><option>Rejected</option><option>Ghosted</option>
+          </select>
+        </div>
+        <div class="md:col-span-2"><label>Company</label><input type="text" id="n-company" required /></div>
+        <div class="md:col-span-2"><label>Role</label><input type="text" id="n-role" required /></div>
+        <div><label>Location</label><input type="text" id="n-location" placeholder="Remote · New York" /></div>
+        <div><label>Source</label><input type="text" id="n-source" placeholder="LinkedIn · Referral" /></div>
+        <div><label>Resume version</label><input type="text" id="n-resume" /></div>
+        <div><label>Follow up by</label><input type="date" id="n-followup" /></div>
+        <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="n-link" /></div>
+        <div class="md:col-span-2"><label>Notes</label><textarea id="n-notes" rows="3"></textarea></div>
+        <div class="md:col-span-2 flex justify-end gap-2 pt-2">
+          <button type="button" class="btn btn-ghost" id="cancelNew2">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save application</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="modal-backdrop" id="editModal">
     <div class="modal">
-      <div class="flex items-baseline justify-between mb-5">
-        <h3 class="display text-2xl"><em class="italic">Amend</em> Entry</h3>
-        <button class="btn-ghost" id="cancelEdit">Cancel</button>
+      <div class="flex items-center justify-between mb-5">
+        <h3>Edit application</h3>
+        <button class="btn btn-ghost" id="cancelEdit">Cancel</button>
       </div>
-      <form id="editForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form id="editForm" class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><label>Date</label><input type="date" id="e-date" required /></div>
         <div><label>Status</label>
           <select id="e-status">
@@ -368,12 +447,18 @@
         </div>
         <div class="md:col-span-2"><label>Company</label><input type="text" id="e-company" required /></div>
         <div class="md:col-span-2"><label>Role</label><input type="text" id="e-role" required /></div>
-        <div><label>Resume Version</label><input type="text" id="e-resume" /></div>
-        <div><label>Job Posting Link</label><input type="url" id="e-link" /></div>
+        <div><label>Location</label><input type="text" id="e-location" /></div>
+        <div><label>Source</label><input type="text" id="e-source" /></div>
+        <div><label>Resume version</label><input type="text" id="e-resume" /></div>
+        <div><label>Follow up by</label><input type="date" id="e-followup" /></div>
+        <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="e-link" /></div>
         <div class="md:col-span-2"><label>Notes</label><textarea id="e-notes" rows="3"></textarea></div>
-        <div class="md:col-span-2 flex justify-end gap-2 pt-2">
-          <button type="button" class="btn-ghost btn-danger" id="deleteEntry">Delete entry</button>
-          <button type="submit" class="btn-primary">Save changes</button>
+        <div class="md:col-span-2 flex justify-between items-center pt-2">
+          <button type="button" class="btn btn-ghost btn-danger" id="deleteEntry">Delete</button>
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-ghost" id="cancelEdit2">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </div>
         </div>
       </form>
     </div>
@@ -387,100 +472,199 @@
 
   let entries = [];
   let activeFilter = 'All';
+  let searchQuery = '';
+  let sortKey = 'date';
+  let sortDir = 'desc';
   let editingId = null;
 
   const $ = id => document.getElementById(id);
-  const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const fmtDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
   const todayISO = () => new Date().toISOString().slice(0,10);
-  const escapeHtml = s => (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const escapeHtml = s => (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function load() {
     try {
       entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       if (!Array.isArray(entries)) entries = [];
     } catch { entries = []; }
+    entries.forEach(e => {
+      e.location = e.location ?? '';
+      e.source = e.source ?? '';
+      e.followUp = e.followUp ?? '';
+    });
   }
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  }
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
 
   function within(daysBack, iso) {
+    if (!iso) return false;
     const d = new Date(iso + 'T00:00:00');
     const now = new Date(); now.setHours(0,0,0,0);
     const diff = (now - d) / 86400000;
     return diff >= 0 && diff < daysBack;
   }
+  function isOverdue(iso) {
+    if (!iso) return false;
+    const d = new Date(iso + 'T00:00:00');
+    const now = new Date(); now.setHours(0,0,0,0);
+    return d < now;
+  }
+
+  function getFiltered() {
+    let list = entries.slice();
+    if (activeFilter === 'Overdue') {
+      list = list.filter(e => isOverdue(e.followUp) && !['Offer','Rejected','Ghosted'].includes(e.status));
+    } else if (activeFilter !== 'All') {
+      list = list.filter(e => e.status === activeFilter);
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(e =>
+        (e.company||'').toLowerCase().includes(q) ||
+        (e.role||'').toLowerCase().includes(q) ||
+        (e.notes||'').toLowerCase().includes(q) ||
+        (e.source||'').toLowerCase().includes(q) ||
+        (e.location||'').toLowerCase().includes(q) ||
+        (e.resume||'').toLowerCase().includes(q)
+      );
+    }
+    list.sort((a,b) => {
+      const av = (a[sortKey] || '').toString().toLowerCase();
+      const bv = (b[sortKey] || '').toString().toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return (b.created || 0) - (a.created || 0);
+    });
+    return list;
+  }
 
   function renderStats() {
     const today = todayISO();
+    $('statTotal').textContent = entries.length;
+    $('statToday').textContent = entries.filter(e => e.date === today).length;
+    $('statWeek').textContent = entries.filter(e => within(7, e.date)).length;
+    $('statPipeline').textContent = entries.filter(e => PIPELINE.has(e.status)).length;
+    $('footerCount').textContent = entries.length;
+
+    const overdueCount = entries.filter(e => isOverdue(e.followUp) && !['Offer','Rejected','Ghosted'].includes(e.status)).length;
+    $('overdueChip').innerHTML = overdueCount > 0
+      ? `Overdue follow-ups <span class="badge ml-1" style="background:#fef3c7;color:#92400e;">${overdueCount}</span>`
+      : 'Overdue follow-ups';
+  }
+
+  function renderChart() {
     const total = entries.length;
-    const todayCount = entries.filter(e => e.date === today).length;
-    const weekCount = entries.filter(e => within(7, e.date)).length;
-    const pipeline = entries.filter(e => PIPELINE.has(e.status)).length;
-    $('statTotal').textContent = total;
-    $('statToday').textContent = todayCount;
-    $('statWeek').textContent = weekCount;
-    $('statPipeline').textContent = pipeline;
-    $('totalCountTop').textContent = 'No. ' + String(total).padStart(3,'0');
+    $('chartMeta').textContent = total + ' ' + (total === 1 ? 'entry' : 'entries');
+    if (total === 0) {
+      $('chartBar').innerHTML = '<div class="chart-seg" style="width:100%;background:#f3f4f6"></div>';
+      $('chartLegend').innerHTML = '<span class="text-[var(--text-faint)]">Add an entry to see distribution</span>';
+      return;
+    }
+    const counts = STATUSES.map(s => ({ s, n: entries.filter(e => e.status === s).length }));
+    $('chartBar').innerHTML = counts
+      .filter(c => c.n > 0)
+      .map(c => `<div class="chart-seg seg-${c.s}" style="width:${(c.n/total*100).toFixed(2)}%" title="${c.s}: ${c.n}"></div>`)
+      .join('');
+    $('chartLegend').innerHTML = counts.map(c => `
+      <span><span class="legend-dot seg-${c.s}"></span>${c.s} <span class="mono text-[var(--text-faint)]">${c.n}</span></span>
+    `).join('');
   }
 
   function renderTable() {
     const body = $('ledgerBody');
-    const filtered = activeFilter === 'All'
-      ? entries
-      : entries.filter(e => e.status === activeFilter);
-    filtered.sort((a,b) => (b.date.localeCompare(a.date)) || (b.created - a.created));
+    const list = getFiltered();
 
-    $('recordMeta').textContent = filtered.length + ' ' + (filtered.length === 1 ? 'entry' : 'entries');
+    document.querySelectorAll('th.sortable').forEach(th => {
+      th.classList.remove('sort-asc','sort-desc');
+      const arrow = th.querySelector('.sort-arrow');
+      if (th.dataset.sort === sortKey) {
+        th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+        arrow.textContent = sortDir === 'asc' ? '↑' : '↓';
+      } else {
+        arrow.textContent = '↕';
+      }
+    });
 
-    if (filtered.length === 0) {
+    if (list.length === 0) {
       body.innerHTML = '';
       $('emptyState').classList.remove('hidden');
-      $('ledgerTable').classList.add('hidden');
       return;
     }
     $('emptyState').classList.add('hidden');
-    $('ledgerTable').classList.remove('hidden');
 
-    body.innerHTML = filtered.map(e => {
-      const link = e.link ? `<a class="entry-link font-mono text-xs" href="${escapeHtml(e.link)}" target="_blank" rel="noopener">posting &rarr;</a>` : '';
-      const notes = e.notes ? `<div class="ink-soft italic text-sm mt-1">&ldquo;${escapeHtml(e.notes)}&rdquo;</div>` : '';
-      const statusOpts = STATUSES.map(s => `<option ${s===e.status?'selected':''}>${s}</option>`).join('');
+    body.innerHTML = list.map(e => {
+      const overdueCls = isOverdue(e.followUp) && !['Offer','Rejected','Ghosted'].includes(e.status) ? 'followup-overdue' : 'text-[var(--text-soft)]';
+      const link = e.link ? `<a class="link-arrow" href="${escapeHtml(e.link)}" target="_blank" rel="noopener">posting ↗</a>` : '';
+      const notes = e.notes ? `<div class="text-sm text-[var(--text-soft)] mt-1">${escapeHtml(e.notes)}</div>` : '';
+      const resume = e.resume ? `<span class="badge mono mr-1">${escapeHtml(e.resume)}</span>` : '';
       return `
         <tr data-id="${e.id}">
-          <td class="font-mono text-xs ink-soft">${fmt(e.date)}</td>
+          <td class="mono text-xs text-[var(--text-soft)] whitespace-nowrap">${fmtDate(e.date)}</td>
           <td>
-            <div class="font-serif font-medium text-base ink">${escapeHtml(e.company)}</div>
-            <div class="font-serif italic ink-soft">${escapeHtml(e.role)}</div>
-            ${link ? '<div class="mt-1">'+link+'</div>' : ''}
+            <div class="font-medium">${escapeHtml(e.company)}</div>
+            <div class="text-sm text-[var(--text-soft)]">${escapeHtml(e.role)}</div>
+            <div class="mt-1">${resume}${link}</div>
             ${notes}
           </td>
-          <td class="font-mono text-xs">${escapeHtml(e.resume || '—')}</td>
+          <td class="text-sm text-[var(--text-soft)]">${escapeHtml(e.location) || '—'}</td>
+          <td class="text-sm text-[var(--text-soft)]">${escapeHtml(e.source) || '—'}</td>
           <td>
-            <select class="inline-status s-${e.status}" data-action="status" data-id="${e.id}">
-              ${statusOpts}
+            <select class="pill pill-${e.status}" data-action="status" data-id="${e.id}" style="padding:0.18rem 0.55rem;height:auto;width:auto;border-radius:999px;">
+              ${STATUSES.map(s => `<option ${s===e.status?'selected':''}>${s}</option>`).join('')}
             </select>
           </td>
-          <td class="text-right pr-3">
-            <button class="btn-ghost" data-action="edit" data-id="${e.id}">Edit</button>
+          <td class="mono text-xs whitespace-nowrap ${overdueCls}">${fmtDate(e.followUp) || '—'}</td>
+          <td class="text-right">
+            <button class="btn btn-ghost" data-action="edit" data-id="${e.id}">Edit</button>
           </td>
         </tr>
       `;
     }).join('');
   }
 
-  function render() { renderStats(); renderTable(); }
+  function render() { renderStats(); renderChart(); renderTable(); }
 
-  function addEntry(e) {
-    e.preventDefault();
+  function openNew() {
+    $('newEntryModal').classList.add('open');
+    $('n-date').value = todayISO();
+    $('n-status').value = 'Applied';
+    ['n-company','n-role','n-location','n-source','n-resume','n-link','n-notes','n-followup']
+      .forEach(id => $(id).value = '');
+    setTimeout(() => $('n-company').focus(), 50);
+  }
+  function closeNew() { $('newEntryModal').classList.remove('open'); }
+  function submitNew(ev) {
+    ev.preventDefault();
     const entry = {
-      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
+      date: $('n-date').value,
+      company: $('n-company').value.trim(),
+      role: $('n-role').value.trim(),
+      location: $('n-location').value.trim(),
+      source: $('n-source').value.trim(),
+      resume: $('n-resume').value.trim(),
+      link: $('n-link').value.trim(),
+      status: $('n-status').value,
+      followUp: $('n-followup').value,
+      notes: $('n-notes').value.trim(),
+      created: Date.now()
+    };
+    entries.push(entry);
+    save(); render(); closeNew();
+  }
+
+  function submitInline(ev) {
+    ev.preventDefault();
+    const entry = {
+      id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
       date: $('f-date').value,
       company: $('f-company').value.trim(),
       role: $('f-role').value.trim(),
+      location: $('f-location').value.trim(),
+      source: $('f-source').value.trim(),
       resume: $('f-resume').value.trim(),
       link: $('f-link').value.trim(),
       status: $('f-status').value,
+      followUp: $('f-followup').value,
       notes: $('f-notes').value.trim(),
       created: Date.now()
     };
@@ -494,71 +678,186 @@
     const e = entries.find(x => x.id === id);
     if (!e) return;
     editingId = id;
-    $('e-date').value = e.date;
-    $('e-company').value = e.company;
-    $('e-role').value = e.role;
+    $('e-date').value = e.date || '';
+    $('e-company').value = e.company || '';
+    $('e-role').value = e.role || '';
+    $('e-location').value = e.location || '';
+    $('e-source').value = e.source || '';
     $('e-resume').value = e.resume || '';
     $('e-link').value = e.link || '';
-    $('e-status').value = e.status;
+    $('e-status').value = e.status || 'Applied';
+    $('e-followup').value = e.followUp || '';
     $('e-notes').value = e.notes || '';
     $('editModal').classList.add('open');
   }
   function closeEdit() { editingId = null; $('editModal').classList.remove('open'); }
-  function saveEdit(ev) {
+  function submitEdit(ev) {
     ev.preventDefault();
     const e = entries.find(x => x.id === editingId);
     if (!e) return closeEdit();
     e.date = $('e-date').value;
     e.company = $('e-company').value.trim();
     e.role = $('e-role').value.trim();
+    e.location = $('e-location').value.trim();
+    e.source = $('e-source').value.trim();
     e.resume = $('e-resume').value.trim();
     e.link = $('e-link').value.trim();
     e.status = $('e-status').value;
+    e.followUp = $('e-followup').value;
     e.notes = $('e-notes').value.trim();
     save(); render(); closeEdit();
   }
   function deleteEntry() {
     if (!editingId) return;
-    if (!confirm('Strike this entry from the ledger?')) return;
+    if (!confirm('Delete this application?')) return;
     entries = entries.filter(x => x.id !== editingId);
     save(); render(); closeEdit();
   }
 
-  function inlineStatus(id, newStatus) {
-    const e = entries.find(x => x.id === id);
-    if (!e) return;
-    e.status = newStatus;
-    save(); render();
-  }
-
   function exportJSON() {
     const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+    download(blob, 'applications-' + todayISO() + '.json');
+  }
+  function exportCSV() {
+    const cols = ['date','company','role','location','source','resume','link','status','followUp','notes'];
+    const escape = v => {
+      const s = (v ?? '').toString();
+      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    };
+    const rows = [cols.join(',')];
+    entries.forEach(e => rows.push(cols.map(c => escape(e[c])).join(',')));
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    download(blob, 'applications-' + todayISO() + '.csv');
+  }
+  function download(blob, name) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'application-ledger-' + todayISO() + '.json';
-    a.click();
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  function parseCSV(text) {
+    const rows = [];
+    let cur = [], field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+        else if (c === '"') { inQuotes = false; }
+        else { field += c; }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { cur.push(field); field = ''; }
+        else if (c === '\n' || c === '\r') {
+          if (c === '\r' && text[i+1] === '\n') i++;
+          cur.push(field); rows.push(cur); cur = []; field = '';
+        } else { field += c; }
+      }
+    }
+    if (field || cur.length) { cur.push(field); rows.push(cur); }
+    return rows.filter(r => r.length && r.some(x => x !== ''));
+  }
+  function importCSV(file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const rows = parseCSV(ev.target.result);
+      if (rows.length < 2) { alert('CSV looks empty.'); return; }
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const idx = name => headers.indexOf(name.toLowerCase());
+      const dateI = idx('date'), companyI = idx('company');
+      if (dateI === -1 || companyI === -1) {
+        alert('CSV must include at least "date" and "company" columns.');
+        return;
+      }
+      let added = 0, skipped = 0;
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        const get = name => { const i = idx(name); return i >= 0 ? (row[i] || '').trim() : ''; };
+        if (!row[dateI] || !row[companyI]) { skipped++; continue; }
+        entries.push({
+          id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random() + r),
+          date: get('date'),
+          company: get('company'),
+          role: get('role'),
+          location: get('location'),
+          source: get('source'),
+          resume: get('resume'),
+          link: get('link'),
+          status: STATUSES.includes(get('status')) ? get('status') : 'Applied',
+          followUp: get('followup') || get('follow up'),
+          notes: get('notes'),
+          created: Date.now() + r
+        });
+        added++;
+      }
+      save(); render();
+      alert(`Imported ${added} application${added===1?'':'s'}.` + (skipped ? ` Skipped ${skipped} row(s) missing date or company.` : ''));
+    };
+    reader.readAsText(file);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     load();
     $('f-date').value = todayISO();
-    $('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-    $('entryForm').addEventListener('submit', addEntry);
-    $('editForm').addEventListener('submit', saveEdit);
+    $('todaySub').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+
+    $('newEntryBtn').addEventListener('click', openNew);
+    $('cancelNew').addEventListener('click', closeNew);
+    $('cancelNew2').addEventListener('click', closeNew);
+    $('newEntryModal').addEventListener('click', ev => { if (ev.target === ev.currentTarget) closeNew(); });
+    $('modalNewForm').addEventListener('submit', submitNew);
+
+    $('entryForm').addEventListener('submit', submitInline);
+    $('resetFormBtn').addEventListener('click', () => { $('entryForm').reset(); $('f-date').value = todayISO(); });
+
+    $('editForm').addEventListener('submit', submitEdit);
     $('cancelEdit').addEventListener('click', closeEdit);
+    $('cancelEdit2').addEventListener('click', closeEdit);
     $('deleteEntry').addEventListener('click', deleteEntry);
     $('editModal').addEventListener('click', ev => { if (ev.target === ev.currentTarget) closeEdit(); });
-    $('exportBtn').addEventListener('click', exportJSON);
 
-    document.querySelectorAll('.filter-tab').forEach(btn => {
+    document.querySelectorAll('.filter-chip').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         activeFilter = btn.dataset.filter;
         renderTable();
       });
+    });
+
+    $('searchInput').addEventListener('input', ev => {
+      searchQuery = ev.target.value.trim();
+      renderTable();
+    });
+
+    document.querySelectorAll('th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const k = th.dataset.sort;
+        if (sortKey === k) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        else { sortKey = k; sortDir = k === 'date' ? 'desc' : 'asc'; }
+        renderTable();
+      });
+    });
+
+    $('exportMenuBtn').addEventListener('click', ev => {
+      ev.stopPropagation();
+      $('exportMenu').classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => $('exportMenu').classList.add('hidden'));
+    $('exportMenu').addEventListener('click', ev => {
+      const t = ev.target.closest('[data-export]');
+      if (!t) return;
+      if (t.dataset.export === 'json') exportJSON();
+      if (t.dataset.export === 'csv') exportCSV();
+      $('exportMenu').classList.add('hidden');
+    });
+
+    $('csvImport').addEventListener('change', ev => {
+      const f = ev.target.files[0];
+      if (f) importCSV(f);
+      ev.target.value = '';
     });
 
     $('ledgerBody').addEventListener('click', ev => {
@@ -569,7 +868,14 @@
     $('ledgerBody').addEventListener('change', ev => {
       const el = ev.target.closest('[data-action="status"]');
       if (!el) return;
-      inlineStatus(el.dataset.id, el.value);
+      const e = entries.find(x => x.id === el.dataset.id);
+      if (!e) return;
+      e.status = el.value;
+      save(); render();
+    });
+
+    document.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') { closeNew(); closeEdit(); }
     });
 
     render();
