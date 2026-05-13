@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Applications</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -280,7 +281,19 @@
     <option value="Seattle, WA"></option>
   </datalist>
 
-  <div class="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
+  <div id="loginScreen" class="flex items-center justify-center min-h-screen px-4">
+    <div class="max-w-sm w-full">
+      <h1 class="text-3xl font-semibold text-center mb-2" style="color:var(--accent);letter-spacing:-0.02em;">Application Tracker</h1>
+      <p class="text-sm text-center text-[var(--text-soft)] mb-8">Sign in with email — we'll send you a magic link.</p>
+      <form id="loginForm" class="space-y-3">
+        <input type="email" id="loginEmail" placeholder="you@example.com" required autocomplete="email" />
+        <button type="submit" class="btn btn-primary w-full justify-center" id="loginBtn">Send magic link</button>
+      </form>
+      <p class="text-sm text-center mt-4 min-h-[1.25rem]" id="loginMessage"></p>
+    </div>
+  </div>
+
+  <div id="appScreen" class="hidden max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
 
     <header class="flex items-center justify-between mb-10">
       <div>
@@ -373,8 +386,8 @@
     </section>
 
     <footer class="mt-12 pt-6 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-soft)]">
-      <span>Stored locally in your browser · <span class="mono" id="footerCount">0</span> entries</span>
-      <span>Built for the search</span>
+      <span><span class="mono" id="footerCount">0</span> entries · <span id="userEmail" class="mono"></span></span>
+      <button class="btn btn-ghost" id="logoutBtn">Sign out</button>
     </footer>
   </div>
 
@@ -443,11 +456,15 @@
 
 <script>
 (() => {
-  const STORAGE_KEY = 'application_ledger_v1';
+  const SUPABASE_URL = 'https://pgntcrjhfdxymgimkiwd.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_Le0hWqHNjfU4A0cVYXq1Ig_Wzcn-6yn';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
   const STATUSES = ['Applied','Screening','Interview','Offer','Rejected','Ghosted'];
   const PIPELINE = new Set(['Screening','Interview']);
 
   let entries = [];
+  let currentUser = null;
   let activeFilter = 'All';
   let searchQuery = '';
   let sortKey = 'date';
@@ -462,19 +479,134 @@
   };
   const escapeHtml = s => (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  function load() {
-    try {
-      entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      if (!Array.isArray(entries)) entries = [];
-    } catch { entries = []; }
-    entries.forEach(e => {
-      e.location = e.location ?? '';
-      e.source = e.source ?? '';
-      e.followUp = e.followUp ?? '';
-    });
+  // ---------- Field mapping (DB row <-> JS entry) ----------
+  function rowToEntry(r) {
+    return {
+      id: r.id,
+      date: r.date || '',
+      company: r.company || '',
+      role: r.role || '',
+      location: r.location || '',
+      source: r.source || '',
+      resume: r.resume || '',
+      link: r.link || '',
+      status: r.status || 'Applied',
+      followUp: r.follow_up || '',
+      notes: r.notes || '',
+      created: r.created_at ? new Date(r.created_at).getTime() : Date.now()
+    };
   }
-  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+  function entryToRow(e) {
+    return {
+      user_id: currentUser?.id,
+      date: e.date || null,
+      company: e.company,
+      role: e.role || null,
+      location: e.location || null,
+      source: e.source || null,
+      resume: e.resume || null,
+      link: e.link || null,
+      status: e.status || 'Applied',
+      follow_up: e.followUp || null,
+      notes: e.notes || null
+    };
+  }
 
+  // ---------- Auth ----------
+  async function checkAuth() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+      currentUser = session.user;
+      showApp();
+      await loadEntries();
+    } else {
+      showLogin();
+    }
+  }
+
+  function showLogin() {
+    $('loginScreen').classList.remove('hidden');
+    $('appScreen').classList.add('hidden');
+  }
+  function showApp() {
+    $('loginScreen').classList.add('hidden');
+    $('appScreen').classList.remove('hidden');
+    if (currentUser) $('userEmail').textContent = currentUser.email || '';
+  }
+
+  async function sendMagicLink(email) {
+    $('loginBtn').disabled = true;
+    $('loginBtn').textContent = 'Sending…';
+    $('loginMessage').textContent = '';
+    $('loginMessage').style.color = '';
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin + window.location.pathname }
+    });
+    $('loginBtn').disabled = false;
+    $('loginBtn').textContent = 'Send magic link';
+    if (error) {
+      $('loginMessage').textContent = 'Error: ' + error.message;
+      $('loginMessage').style.color = '#fca5a5';
+    } else {
+      $('loginMessage').textContent = 'Check your email — click the link to sign in.';
+      $('loginMessage').style.color = '#6ee7b7';
+    }
+  }
+
+  async function logout() {
+    await sb.auth.signOut();
+    entries = [];
+    currentUser = null;
+    showLogin();
+  }
+
+  // ---------- Data ----------
+  async function loadEntries() {
+    const { data, error } = await sb.from('applications')
+      .select('*')
+      .order('date', { ascending: false });
+    if (error) { alert('Failed to load: ' + error.message); return; }
+    entries = (data || []).map(rowToEntry);
+    render();
+  }
+
+  async function addEntry(entry) {
+    const row = entryToRow(entry);
+    const { data, error } = await sb.from('applications').insert([row]).select();
+    if (error) { alert('Save failed: ' + error.message); return; }
+    entries.push(rowToEntry(data[0]));
+    render();
+  }
+
+  async function updateEntry(id, changes) {
+    const e = entries.find(x => x.id === id);
+    if (!e) return;
+    Object.assign(e, changes);
+    const row = entryToRow(e);
+    delete row.user_id;
+    const { error } = await sb.from('applications').update(row).eq('id', id);
+    if (error) { alert('Update failed: ' + error.message); await loadEntries(); return; }
+    render();
+  }
+
+  async function deleteEntry(id) {
+    const { error } = await sb.from('applications').delete().eq('id', id);
+    if (error) { alert('Delete failed: ' + error.message); return; }
+    entries = entries.filter(x => x.id !== id);
+    render();
+  }
+
+  async function bulkInsert(items) {
+    const rows = items.map(entryToRow);
+    const { data, error } = await sb.from('applications').insert(rows).select();
+    if (error) { alert('Import failed: ' + error.message); return 0; }
+    (data || []).forEach(r => entries.push(rowToEntry(r)));
+    render();
+    return data?.length || 0;
+  }
+
+  // ---------- Helpers ----------
   function within(daysBack, iso) {
     if (!iso) return false;
     const d = new Date(iso + 'T00:00:00');
@@ -517,6 +649,7 @@
     return list;
   }
 
+  // ---------- Render ----------
   function renderStats() {
     const today = todayISO();
     $('statTotal').textContent = entries.length;
@@ -575,11 +708,14 @@
       const overdueCls = isOverdue(e.followUp) && !['Offer','Rejected','Ghosted'].includes(e.status) ? 'followup-overdue' : 'text-[var(--text-soft)]';
       const link = e.link ? `<a class="link-arrow" href="${escapeHtml(e.link)}" target="_blank" rel="noopener">posting ↗</a>` : '';
       const notes = e.notes ? `<div class="text-sm text-[var(--text-soft)] mt-1">${escapeHtml(e.notes)}</div>` : '';
-      const resume = e.resume ? (
-        /^https?:\/\//i.test(e.resume)
-          ? `<a class="link-arrow mr-2" href="${escapeHtml(e.resume)}" target="_blank" rel="noopener">resume ↗</a>`
-          : `<span class="badge mono mr-1">${escapeHtml(e.resume)}</span>`
-      ) : '';
+      let resume = '';
+      if (e.resume) {
+        if (/^https?:\/\//i.test(e.resume)) {
+          resume = `<a class="link-arrow mr-2" href="${escapeHtml(e.resume)}" target="_blank" rel="noopener">resume ↗</a>`;
+        } else {
+          resume = `<span class="badge mono mr-1">${escapeHtml(e.resume)}</span>`;
+        }
+      }
       return `
         <tr data-id="${e.id}">
           <td class="mono text-xs text-[var(--text-soft)] whitespace-nowrap">${fmtDate(e.date)}</td>
@@ -607,6 +743,7 @@
 
   function render() { renderStats(); renderChart(); renderTable(); }
 
+  // ---------- Modals ----------
   function openNew() {
     $('newEntryModal').classList.add('open');
     $('n-date').value = todayISO();
@@ -616,10 +753,9 @@
     setTimeout(() => $('n-company').focus(), 50);
   }
   function closeNew() { $('newEntryModal').classList.remove('open'); }
-  function submitNew(ev) {
+  async function submitNew(ev) {
     ev.preventDefault();
     const entry = {
-      id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
       date: $('n-date').value,
       company: $('n-company').value.trim(),
       role: $('n-role').value.trim(),
@@ -629,11 +765,10 @@
       link: $('n-link').value.trim(),
       status: $('n-status').value,
       followUp: $('n-followup').value,
-      notes: $('n-notes').value.trim(),
-      created: Date.now()
+      notes: $('n-notes').value.trim()
     };
-    entries.push(entry);
-    save(); render(); closeNew();
+    closeNew();
+    await addEntry(entry);
   }
 
   function openEdit(id) {
@@ -653,29 +788,34 @@
     $('editModal').classList.add('open');
   }
   function closeEdit() { editingId = null; $('editModal').classList.remove('open'); }
-  function submitEdit(ev) {
+  async function submitEdit(ev) {
     ev.preventDefault();
-    const e = entries.find(x => x.id === editingId);
-    if (!e) return closeEdit();
-    e.date = $('e-date').value;
-    e.company = $('e-company').value.trim();
-    e.role = $('e-role').value.trim();
-    e.location = $('e-location').value.trim();
-    e.source = $('e-source').value.trim();
-    e.resume = $('e-resume').value.trim();
-    e.link = $('e-link').value.trim();
-    e.status = $('e-status').value;
-    e.followUp = $('e-followup').value;
-    e.notes = $('e-notes').value.trim();
-    save(); render(); closeEdit();
+    if (!editingId) return closeEdit();
+    const changes = {
+      date: $('e-date').value,
+      company: $('e-company').value.trim(),
+      role: $('e-role').value.trim(),
+      location: $('e-location').value.trim(),
+      source: $('e-source').value.trim(),
+      resume: $('e-resume').value.trim(),
+      link: $('e-link').value.trim(),
+      status: $('e-status').value,
+      followUp: $('e-followup').value,
+      notes: $('e-notes').value.trim()
+    };
+    const id = editingId;
+    closeEdit();
+    await updateEntry(id, changes);
   }
-  function deleteEntry() {
+  async function deleteCurrentEntry() {
     if (!editingId) return;
     if (!confirm('Delete this application?')) return;
-    entries = entries.filter(x => x.id !== editingId);
-    save(); render(); closeEdit();
+    const id = editingId;
+    closeEdit();
+    await deleteEntry(id);
   }
 
+  // ---------- Export / Import ----------
   function exportJSON() {
     const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
     download(blob, 'applications-' + todayISO() + '.json');
@@ -721,9 +861,9 @@
     if (field || cur.length) { cur.push(field); rows.push(cur); }
     return rows.filter(r => r.length && r.some(x => x !== ''));
   }
-  function importCSV(file) {
+  async function importCSV(file) {
     const reader = new FileReader();
-    reader.onload = ev => {
+    reader.onload = async ev => {
       const rows = parseCSV(ev.target.result);
       if (rows.length < 2) { alert('CSV looks empty.'); return; }
       const headers = rows[0].map(h => h.trim().toLowerCase());
@@ -733,13 +873,13 @@
         alert('CSV must include at least "date" and "company" columns.');
         return;
       }
-      let added = 0, skipped = 0;
+      const items = [];
+      let skipped = 0;
       for (let r = 1; r < rows.length; r++) {
         const row = rows[r];
         const get = name => { const i = idx(name); return i >= 0 ? (row[i] || '').trim() : ''; };
         if (!row[dateI] || !row[companyI]) { skipped++; continue; }
-        entries.push({
-          id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random() + r),
+        items.push({
           date: get('date'),
           company: get('company'),
           role: get('role'),
@@ -748,22 +888,42 @@
           resume: get('resume'),
           link: get('link'),
           status: STATUSES.includes(get('status')) ? get('status') : 'Applied',
-          followUp: get('followup') || get('follow up'),
-          notes: get('notes'),
-          created: Date.now() + r
+          followUp: get('followup') || get('follow up') || get('follow_up'),
+          notes: get('notes')
         });
-        added++;
       }
-      save(); render();
+      const added = await bulkInsert(items);
       alert(`Imported ${added} application${added===1?'':'s'}.` + (skipped ? ` Skipped ${skipped} row(s) missing date or company.` : ''));
     };
     reader.readAsText(file);
   }
 
+  // ---------- Event wiring ----------
   document.addEventListener('DOMContentLoaded', () => {
-    load();
     $('todaySub').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 
+    // Login form
+    $('loginForm').addEventListener('submit', ev => {
+      ev.preventDefault();
+      const email = $('loginEmail').value.trim();
+      if (email) sendMagicLink(email);
+    });
+    $('logoutBtn').addEventListener('click', logout);
+
+    // Listen for auth state changes
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        currentUser = session.user;
+        showApp();
+        loadEntries();
+      } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        entries = [];
+        showLogin();
+      }
+    });
+
+    // Main app events
     $('newEntryBtn').addEventListener('click', openNew);
     $('cancelNew').addEventListener('click', closeNew);
     $('cancelNew2').addEventListener('click', closeNew);
@@ -773,7 +933,7 @@
     $('editForm').addEventListener('submit', submitEdit);
     $('cancelEdit').addEventListener('click', closeEdit);
     $('cancelEdit2').addEventListener('click', closeEdit);
-    $('deleteEntry').addEventListener('click', deleteEntry);
+    $('deleteEntry').addEventListener('click', deleteCurrentEntry);
     $('editModal').addEventListener('click', ev => { if (ev.target === ev.currentTarget) closeEdit(); });
 
     document.querySelectorAll('.filter-chip').forEach(btn => {
@@ -826,17 +986,14 @@
     $('ledgerBody').addEventListener('change', ev => {
       const el = ev.target.closest('[data-action="status"]');
       if (!el) return;
-      const e = entries.find(x => x.id === el.dataset.id);
-      if (!e) return;
-      e.status = el.value;
-      save(); render();
+      updateEntry(el.dataset.id, { status: el.value });
     });
 
     document.addEventListener('keydown', ev => {
       if (ev.key === 'Escape') { closeNew(); closeEdit(); }
     });
 
-    render();
+    checkAuth();
   });
 })();
 </script>
