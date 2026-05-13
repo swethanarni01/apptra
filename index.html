@@ -211,6 +211,42 @@
     }
 
     .followup-overdue { color: #fbbf24; font-weight: 500; }
+
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--bg);
+      user-select: none;
+    }
+    .dropzone:hover {
+      border-color: var(--accent);
+      background: var(--bg-hover);
+    }
+    .dropzone.dragging {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      border-style: solid;
+      transform: scale(1.01);
+    }
+    .dropzone-icon { font-size: 1.5rem; opacity: 0.7; line-height: 1; }
+    .dropzone-text {
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-top: 0.5rem;
+    }
+    .dropzone-text strong { color: var(--accent); font-weight: 600; }
+    .dropzone-file {
+      font-size: 0.85rem;
+      color: var(--text);
+      font-weight: 500;
+      margin-top: 0.4rem;
+    }
+    .dropzone-file .filename { color: #6ee7b7; }
+    .dropzone-file .filesize { color: var(--text-soft); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
     .link-arrow { color: var(--text-soft); text-decoration: none; font-size: 0.78rem; }
     .link-arrow:hover { color: var(--text); }
 
@@ -411,7 +447,12 @@
         <div><label>Source</label><input type="text" id="n-source" list="source-options" placeholder="LinkedIn · Referral" /></div>
         <div>
           <label>Resume PDF</label>
-          <input type="file" id="n-resume" accept="application/pdf" />
+          <div class="dropzone" data-dropzone-for="n-resume">
+            <div class="dropzone-icon">📄</div>
+            <div class="dropzone-text">Drop PDF here, or <strong>click to browse</strong></div>
+            <div class="dropzone-file hidden"></div>
+          </div>
+          <input type="file" id="n-resume" accept="application/pdf" class="hidden" />
         </div>
         <div><label>Follow up by</label><input type="date" id="n-followup" /></div>
         <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="n-link" /></div>
@@ -445,7 +486,12 @@
         <div>
           <label>Resume PDF</label>
           <div id="e-resume-current" class="text-xs text-[var(--text-soft)] mb-1.5"></div>
-          <input type="file" id="e-resume" accept="application/pdf" />
+          <div class="dropzone" data-dropzone-for="e-resume">
+            <div class="dropzone-icon">📄</div>
+            <div class="dropzone-text">Drop PDF to replace, or <strong>click to browse</strong></div>
+            <div class="dropzone-file hidden"></div>
+          </div>
+          <input type="file" id="e-resume" accept="application/pdf" class="hidden" />
         </div>
         <div><label>Follow up by</label><input type="date" id="e-followup" /></div>
         <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="e-link" /></div>
@@ -755,11 +801,78 @@
     $('newEntryModal').classList.add('open');
     $('n-date').value = todayISO();
     $('n-status').value = 'Applied';
-    ['n-company','n-role','n-location','n-source','n-resume','n-link','n-notes','n-followup']
+    ['n-company','n-role','n-location','n-source','n-link','n-notes','n-followup']
       .forEach(id => $(id).value = '');
+    resetDropzone('n-resume');
     setTimeout(() => $('n-company').focus(), 50);
   }
   function closeNew() { $('newEntryModal').classList.remove('open'); }
+
+  function initDropzones() {
+    document.querySelectorAll('.dropzone').forEach(zone => {
+      if (zone.dataset.wired === 'yes') return;
+      zone.dataset.wired = 'yes';
+      const inputId = zone.dataset.dropzoneFor;
+      const input = $(inputId);
+      if (!input) return;
+
+      zone.addEventListener('click', () => input.click());
+
+      ['dragover','dragenter'].forEach(evt => {
+        zone.addEventListener(evt, e => {
+          e.preventDefault();
+          zone.classList.add('dragging');
+        });
+      });
+      ['dragleave','dragend','drop'].forEach(evt => {
+        zone.addEventListener(evt, e => {
+          if (evt === 'dragleave' && zone.contains(e.relatedTarget)) return;
+          zone.classList.remove('dragging');
+        });
+      });
+
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        if (!isPdf) { alert('Please drop a PDF file.'); return; }
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        updateDropzoneDisplay(input);
+      });
+
+      input.addEventListener('change', () => updateDropzoneDisplay(input));
+    });
+  }
+
+  function updateDropzoneDisplay(input) {
+    const zone = document.querySelector(`.dropzone[data-dropzone-for="${input.id}"]`);
+    if (!zone) return;
+    const promptEl = zone.querySelector('.dropzone-text');
+    const infoEl = zone.querySelector('.dropzone-file');
+    const file = input.files[0];
+    if (file) {
+      promptEl.classList.add('hidden');
+      infoEl.classList.remove('hidden');
+      const sizeKB = (file.size / 1024).toFixed(0);
+      const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+      const sizeStr = file.size > 1024 * 1024 ? sizeMB + ' MB' : sizeKB + ' KB';
+      infoEl.innerHTML = `<span class="filename">✓ ${escapeHtml(file.name)}</span> <span class="filesize">· ${sizeStr}</span>`;
+    } else {
+      promptEl.classList.remove('hidden');
+      infoEl.classList.add('hidden');
+      infoEl.innerHTML = '';
+    }
+  }
+
+  function resetDropzone(inputId) {
+    const input = $(inputId);
+    if (!input) return;
+    input.value = '';
+    updateDropzoneDisplay(input);
+  }
 
   async function openResumeByPath(path) {
     const { data, error } = await sb.storage.from('resumes').createSignedUrl(path, 3600);
@@ -816,7 +929,7 @@
     $('e-role').value = e.role || '';
     $('e-location').value = e.location || '';
     $('e-source').value = e.source || '';
-    $('e-resume').value = '';
+    resetDropzone('e-resume');
     $('e-link').value = e.link || '';
     $('e-status').value = e.status || 'Applied';
     $('e-followup').value = e.followUp || '';
@@ -957,6 +1070,8 @@
   // ---------- Event wiring ----------
   document.addEventListener('DOMContentLoaded', () => {
     $('todaySub').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+
+    initDropzones();
 
     // Login form
     $('loginForm').addEventListener('submit', ev => {
