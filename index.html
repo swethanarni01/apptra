@@ -409,7 +409,10 @@
         <div class="md:col-span-2"><label>Role</label><input type="text" id="n-role" required /></div>
         <div><label>Location</label><input type="text" id="n-location" list="location-options" placeholder="Remote · New York" /></div>
         <div><label>Source</label><input type="text" id="n-source" list="source-options" placeholder="LinkedIn · Referral" /></div>
-        <div><label>Resume link</label><input type="url" id="n-resume" placeholder="https://drive.google.com/..." /></div>
+        <div>
+          <label>Resume PDF</label>
+          <input type="file" id="n-resume" accept="application/pdf" />
+        </div>
         <div><label>Follow up by</label><input type="date" id="n-followup" /></div>
         <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="n-link" /></div>
         <div class="md:col-span-2"><label>Notes</label><textarea id="n-notes" rows="3"></textarea></div>
@@ -439,7 +442,11 @@
         <div class="md:col-span-2"><label>Role</label><input type="text" id="e-role" required /></div>
         <div><label>Location</label><input type="text" id="e-location" list="location-options" /></div>
         <div><label>Source</label><input type="text" id="e-source" list="source-options" /></div>
-        <div><label>Resume link</label><input type="url" id="e-resume" placeholder="https://drive.google.com/..." /></div>
+        <div>
+          <label>Resume PDF</label>
+          <div id="e-resume-current" class="text-xs text-[var(--text-soft)] mb-1.5"></div>
+          <input type="file" id="e-resume" accept="application/pdf" />
+        </div>
         <div><label>Follow up by</label><input type="date" id="e-followup" /></div>
         <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="e-link" /></div>
         <div class="md:col-span-2"><label>Notes</label><textarea id="e-notes" rows="3"></textarea></div>
@@ -713,7 +720,7 @@
         if (/^https?:\/\//i.test(e.resume)) {
           resume = `<a class="link-arrow mr-2" href="${escapeHtml(e.resume)}" target="_blank" rel="noopener">resume ↗</a>`;
         } else {
-          resume = `<span class="badge mono mr-1">${escapeHtml(e.resume)}</span>`;
+          resume = `<a class="link-arrow mr-2" href="#" data-view-resume="${escapeHtml(e.resume)}">resume ↗</a>`;
         }
       }
       return `
@@ -753,21 +760,50 @@
     setTimeout(() => $('n-company').focus(), 50);
   }
   function closeNew() { $('newEntryModal').classList.remove('open'); }
+
+  async function openResumeByPath(path) {
+    const { data, error } = await sb.storage.from('resumes').createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) {
+      alert('Could not open resume: ' + (error?.message || 'file may have been deleted'));
+      return;
+    }
+    window.open(data.signedUrl, '_blank', 'noopener');
+  }
+
+  async function uploadResumeFile(file) {
+    if (!file || !currentUser) return '';
+    const safeName = file.name.replace(/[^\w.-]/g, '_');
+    const path = `${currentUser.id}/${Date.now()}-${safeName}`;
+    const { error } = await sb.storage.from('resumes').upload(path, file, {
+      contentType: 'application/pdf',
+      upsert: false
+    });
+    if (error) { alert('Resume upload failed: ' + error.message); throw error; }
+    return path;
+  }
+
   async function submitNew(ev) {
     ev.preventDefault();
+    const file = $('n-resume').files[0];
+    const submitBtn = ev.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true; submitBtn.textContent = file ? 'Uploading…' : 'Saving…';
+    let resumePath = '';
+    try { if (file) resumePath = await uploadResumeFile(file); }
+    catch { submitBtn.disabled = false; submitBtn.textContent = 'Save application'; return; }
     const entry = {
       date: $('n-date').value,
       company: $('n-company').value.trim(),
       role: $('n-role').value.trim(),
       location: $('n-location').value.trim(),
       source: $('n-source').value.trim(),
-      resume: $('n-resume').value.trim(),
+      resume: resumePath,
       link: $('n-link').value.trim(),
       status: $('n-status').value,
       followUp: $('n-followup').value,
       notes: $('n-notes').value.trim()
     };
     closeNew();
+    submitBtn.disabled = false; submitBtn.textContent = 'Save application';
     await addEntry(entry);
   }
 
@@ -780,24 +816,42 @@
     $('e-role').value = e.role || '';
     $('e-location').value = e.location || '';
     $('e-source').value = e.source || '';
-    $('e-resume').value = e.resume || '';
+    $('e-resume').value = '';
     $('e-link').value = e.link || '';
     $('e-status').value = e.status || 'Applied';
     $('e-followup').value = e.followUp || '';
     $('e-notes').value = e.notes || '';
+    const cur = $('e-resume-current');
+    if (e.resume) {
+      const isUrl = /^https?:\/\//i.test(e.resume);
+      const label = isUrl ? 'Link' : (e.resume.split('/').pop() || 'file');
+      cur.innerHTML = `Current: <span class="mono">${escapeHtml(label)}</span> · <a href="#" data-view-resume="${escapeHtml(e.resume)}" class="link-arrow" style="text-decoration:underline;">view</a> · <button type="button" id="e-resume-clear" class="link-arrow" style="background:none;border:none;cursor:pointer;text-decoration:underline;">remove</button><div class="mt-1">Pick a new file below to replace, or leave empty to keep.</div>`;
+    } else {
+      cur.innerHTML = '<span class="text-[var(--text-faint)]">No resume yet — pick a PDF below to upload.</span>';
+    }
     $('editModal').classList.add('open');
   }
   function closeEdit() { editingId = null; $('editModal').classList.remove('open'); }
   async function submitEdit(ev) {
     ev.preventDefault();
     if (!editingId) return closeEdit();
+    const e = entries.find(x => x.id === editingId);
+    const file = $('e-resume').files[0];
+    const submitBtn = ev.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true; submitBtn.textContent = file ? 'Uploading…' : 'Saving…';
+    let resumePath = e ? e.resume : '';
+    if (file) {
+      try { resumePath = await uploadResumeFile(file); }
+      catch { submitBtn.disabled = false; submitBtn.textContent = 'Save changes'; return; }
+    }
+    if ($('e-resume').dataset.cleared === 'yes') resumePath = '';
     const changes = {
       date: $('e-date').value,
       company: $('e-company').value.trim(),
       role: $('e-role').value.trim(),
       location: $('e-location').value.trim(),
       source: $('e-source').value.trim(),
-      resume: $('e-resume').value.trim(),
+      resume: resumePath,
       link: $('e-link').value.trim(),
       status: $('e-status').value,
       followUp: $('e-followup').value,
@@ -805,6 +859,8 @@
     };
     const id = editingId;
     closeEdit();
+    submitBtn.disabled = false; submitBtn.textContent = 'Save changes';
+    delete $('e-resume').dataset.cleared;
     await updateEntry(id, changes);
   }
   async function deleteCurrentEntry() {
@@ -935,6 +991,21 @@
     $('cancelEdit2').addEventListener('click', closeEdit);
     $('deleteEntry').addEventListener('click', deleteCurrentEntry);
     $('editModal').addEventListener('click', ev => { if (ev.target === ev.currentTarget) closeEdit(); });
+    $('e-resume-current').addEventListener('click', ev => {
+      const view = ev.target.closest('[data-view-resume]');
+      if (view) {
+        ev.preventDefault();
+        const v = view.dataset.viewResume;
+        if (/^https?:\/\//i.test(v)) window.open(v, '_blank', 'noopener');
+        else openResumeByPath(v);
+        return;
+      }
+      if (ev.target.id === 'e-resume-clear') {
+        ev.preventDefault();
+        $('e-resume').dataset.cleared = 'yes';
+        $('e-resume-current').innerHTML = '<span class="text-[var(--text-faint)]">Will be removed on save. Pick a new file below to replace instead.</span>';
+      }
+    });
 
     document.querySelectorAll('.filter-chip').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -979,6 +1050,12 @@
     });
 
     $('ledgerBody').addEventListener('click', ev => {
+      const resumeEl = ev.target.closest('[data-view-resume]');
+      if (resumeEl) {
+        ev.preventDefault();
+        openResumeByPath(resumeEl.dataset.viewResume);
+        return;
+      }
       const el = ev.target.closest('[data-action]');
       if (!el) return;
       if (el.dataset.action === 'edit') openEdit(el.dataset.id);
