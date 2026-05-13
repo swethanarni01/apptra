@@ -312,66 +312,6 @@
       <div class="chart-legend" id="chartLegend"></div>
     </section>
 
-    <details class="section border border-[var(--border)] rounded-xl px-5 py-3 mb-6" id="formSection">
-      <summary>
-        <span class="chev">›</span>
-        <span>Log a new application</span>
-      </summary>
-      <form id="entryForm" class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-4 pb-2">
-        <div class="md:col-span-3">
-          <label for="f-date">Date</label>
-          <input type="date" id="f-date" required />
-        </div>
-        <div class="md:col-span-4">
-          <label for="f-company">Company</label>
-          <input type="text" id="f-company" placeholder="Hearst Magazines" required />
-        </div>
-        <div class="md:col-span-5">
-          <label for="f-role">Role</label>
-          <input type="text" id="f-role" placeholder="Brand Marketing Associate" required />
-        </div>
-        <div class="md:col-span-4">
-          <label for="f-location">Location</label>
-          <input type="text" id="f-location" list="location-options" placeholder="Remote · New York · Hybrid" />
-        </div>
-        <div class="md:col-span-4">
-          <label for="f-source">Source</label>
-          <input type="text" id="f-source" list="source-options" placeholder="LinkedIn · Referral · Company site" />
-        </div>
-        <div class="md:col-span-4">
-          <label for="f-status">Status</label>
-          <select id="f-status">
-            <option>Applied</option>
-            <option>Screening</option>
-            <option>Interview</option>
-            <option>Offer</option>
-            <option>Rejected</option>
-            <option>Ghosted</option>
-          </select>
-        </div>
-        <div class="md:col-span-3">
-          <label for="f-resume">Resume version</label>
-          <input type="text" id="f-resume" placeholder="v3-marketing" />
-        </div>
-        <div class="md:col-span-6">
-          <label for="f-link">Job posting link</label>
-          <input type="url" id="f-link" placeholder="https://…" />
-        </div>
-        <div class="md:col-span-3">
-          <label for="f-followup">Follow up by</label>
-          <input type="date" id="f-followup" />
-        </div>
-        <div class="md:col-span-12">
-          <label for="f-notes">Notes</label>
-          <textarea id="f-notes" rows="2" placeholder="Referral, recruiter name, key takeaways…"></textarea>
-        </div>
-        <div class="md:col-span-12 flex items-center justify-end gap-2 pt-1">
-          <button type="button" class="btn btn-ghost" id="resetFormBtn">Clear</button>
-          <button type="submit" class="btn btn-primary">Save application</button>
-        </div>
-      </form>
-    </details>
-
     <section class="mb-4">
       <div class="flex flex-col sm:flex-row gap-3 mb-3">
         <div class="flex-1 relative">
@@ -448,7 +388,7 @@
         <div class="md:col-span-2"><label>Role</label><input type="text" id="n-role" required /></div>
         <div><label>Location</label><input type="text" id="n-location" list="location-options" placeholder="Remote · New York" /></div>
         <div><label>Source</label><input type="text" id="n-source" list="source-options" placeholder="LinkedIn · Referral" /></div>
-        <div><label>Resume version</label><input type="text" id="n-resume" /></div>
+        <div><label>Resume link</label><input type="url" id="n-resume" placeholder="https://drive.google.com/..." /></div>
         <div><label>Follow up by</label><input type="date" id="n-followup" /></div>
         <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="n-link" /></div>
         <div class="md:col-span-2"><label>Notes</label><textarea id="n-notes" rows="3"></textarea></div>
@@ -478,7 +418,7 @@
         <div class="md:col-span-2"><label>Role</label><input type="text" id="e-role" required /></div>
         <div><label>Location</label><input type="text" id="e-location" list="location-options" /></div>
         <div><label>Source</label><input type="text" id="e-source" list="source-options" /></div>
-        <div><label>Resume version</label><input type="text" id="e-resume" /></div>
+        <div><label>Resume link</label><input type="url" id="e-resume" placeholder="https://drive.google.com/..." /></div>
         <div><label>Follow up by</label><input type="date" id="e-followup" /></div>
         <div class="md:col-span-2"><label>Job posting link</label><input type="url" id="e-link" /></div>
         <div class="md:col-span-2"><label>Notes</label><textarea id="e-notes" rows="3"></textarea></div>
@@ -624,7 +564,11 @@
       const overdueCls = isOverdue(e.followUp) && !['Offer','Rejected','Ghosted'].includes(e.status) ? 'followup-overdue' : 'text-[var(--text-soft)]';
       const link = e.link ? `<a class="link-arrow" href="${escapeHtml(e.link)}" target="_blank" rel="noopener">posting ↗</a>` : '';
       const notes = e.notes ? `<div class="text-sm text-[var(--text-soft)] mt-1">${escapeHtml(e.notes)}</div>` : '';
-      const resume = e.resume ? `<span class="badge mono mr-1">${escapeHtml(e.resume)}</span>` : '';
+      const resume = e.resume ? (
+        /^https?:\/\//i.test(e.resume)
+          ? `<a class="link-arrow mr-2" href="${escapeHtml(e.resume)}" target="_blank" rel="noopener">resume ↗</a>`
+          : `<span class="badge mono mr-1">${escapeHtml(e.resume)}</span>`
+      ) : '';
       return `
         <tr data-id="${e.id}">
           <td class="mono text-xs text-[var(--text-soft)] whitespace-nowrap">${fmtDate(e.date)}</td>
@@ -679,28 +623,6 @@
     };
     entries.push(entry);
     save(); render(); closeNew();
-  }
-
-  function submitInline(ev) {
-    ev.preventDefault();
-    const entry = {
-      id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
-      date: $('f-date').value,
-      company: $('f-company').value.trim(),
-      role: $('f-role').value.trim(),
-      location: $('f-location').value.trim(),
-      source: $('f-source').value.trim(),
-      resume: $('f-resume').value.trim(),
-      link: $('f-link').value.trim(),
-      status: $('f-status').value,
-      followUp: $('f-followup').value,
-      notes: $('f-notes').value.trim(),
-      created: Date.now()
-    };
-    entries.push(entry);
-    save(); render();
-    $('entryForm').reset();
-    $('f-date').value = todayISO();
   }
 
   function openEdit(id) {
@@ -829,7 +751,6 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     load();
-    $('f-date').value = todayISO();
     $('todaySub').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 
     $('newEntryBtn').addEventListener('click', openNew);
@@ -837,9 +758,6 @@
     $('cancelNew2').addEventListener('click', closeNew);
     $('newEntryModal').addEventListener('click', ev => { if (ev.target === ev.currentTarget) closeNew(); });
     $('modalNewForm').addEventListener('submit', submitNew);
-
-    $('entryForm').addEventListener('submit', submitInline);
-    $('resetFormBtn').addEventListener('click', () => { $('entryForm').reset(); $('f-date').value = todayISO(); });
 
     $('editForm').addEventListener('submit', submitEdit);
     $('cancelEdit').addEventListener('click', closeEdit);
